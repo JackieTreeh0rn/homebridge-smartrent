@@ -14,8 +14,8 @@
 [![GitHub Last Commit](https://badgen.net/github/last-commit/JackieTreeh0rn/homebridge-smartrent?color=cyan&icon=github)](https://github.com/JackieTreeh0rn/homebridge-smartrent)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/JackieTreeh0rn/homebridge-smartrent.svg)](https://github.com/JackieTreeh0rn/homebridge-smartrent/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/JackieTreeh0rn/homebridge-smartrent.svg)](https://github.com/JackieTreeh0rn/homebridge-smartrent/issues)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B50603%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B50603%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=license)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B50603%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B50603%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=security)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=license)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=security)
 
 Unofficial [Homebridge](https://homebridge.io) plugin for [SmartRent](https://smartrent.com), allowing you to control your SmartRent devices with [Apple Home](https://www.apple.com/ios/home/).
 
