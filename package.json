@@ -53,12 +53,12 @@
     "setup-log": "touch $(pwd)/test/hbConfig/homebridge.log && sed -i '' \"s|<log_file>|$(pwd)/test/hbConfig/homebridge.log|g\" $(pwd)/test/hbConfig/config.json"
   },
   "dependencies": {
-    "@homebridge/plugin-ui-utils": "^2.0.0",
-    "axios": "^1.7.9",
-    "homebridge-lib": "^7.1.1",
+    "@homebridge/plugin-ui-utils": "^2.1.0",
+    "axios": "^1.11.0",
+    "homebridge-lib": "^7.1.6",
     "jwt-decode": "^4.0.0",
     "otplib": "^12.0.1",
-    "ws": "^8.8.1"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.1",
