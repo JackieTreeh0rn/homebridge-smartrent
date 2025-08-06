@@ -21,8 +21,6 @@ Unofficial [Homebridge](https://homebridge.io) plugin for [SmartRent](https://sm
 
 </span>
 
-
-
 ## 🔄 Supported Devices
 
 Homebridge SmartRent currently supports these devices through a SmartRent hub:
