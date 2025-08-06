@@ -424,23 +424,26 @@ export class ThermostatAccessory {
     return Math.max(50, Math.min(90, fahrenheit));
   }
 
-  private toTemperatureCharacteristic(temperature: number | null | undefined) {
-    if (typeof temperature !== 'number' || isNaN(temperature)) {
+  private toTemperatureCharacteristic(
+    temperature: string | number | null | undefined
+  ) {
+    if (temperature === null || temperature === undefined) {
       this.platform.log.warn('Invalid temperature from API:', temperature);
-      return 21; // fallback to a safe default (Celsius)
+      return 21; // fallback to safe default (Celsius)
     }
-    // Parse string to number if needed
-    const temp =
-      typeof temperature === 'string' ? parseFloat(temperature) : temperature;
 
-    // Round to 1 decimal place to avoid floating point issues
+    const temp = Number(temperature);
+    if (isNaN(temp)) {
+      this.platform.log.warn('Could not parse temperature:', temperature);
+      return 21;
+    }
+
+    // Convert F to C and round to 1 decimal
     const celsius = Math.round((((temp - 32) * 5) / 9) * 10) / 10;
-
     this.platform.log.debug(
       `toTemperatureCharacteristic ${temp}°F => ${celsius}°C`
     );
 
-    // Ensure the value is within HomeKit's allowed range (10-38°C)
     return Math.max(10, Math.min(38, celsius));
   }
 
@@ -569,8 +572,6 @@ export class ThermostatAccessory {
       const fahrenheit = Math.round(
         this.fromTemperatureCharacteristic(numValue)
       );
-
-      // Log the conversion for debugging
       this.platform.log.debug(`Converting ${numValue}°C to ${fahrenheit}°F`);
 
       // Validate Fahrenheit temperature is within SmartRent's allowed range
@@ -580,49 +581,49 @@ export class ThermostatAccessory {
         );
       }
 
-      // Create payload with number (not string)
-      const payload: DeviceAttribute[] = [
+      // Create attributes array - note the state must be a string!
+      const newAttributes = [
         {
           name:
             this.state.heating_cooling_state.current ===
             this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-              ? 'cool_target_temp'
-              : 'heat_target_temp',
-          state: fahrenheit, // Send as number, not string
+              ? 'cooling_setpoint' // Changed from cool_target_temp
+              : 'heating_setpoint', // Changed from heat_target_temp
+          state: fahrenheit.toString(), // Convert to string
         },
       ];
 
-      // Log the exact payload being sent
-      this.platform.log.debug('Sending payload:', JSON.stringify(payload));
+      // Log the exact attributes being sent
+      this.platform.log.debug(
+        'Sending attributes:',
+        JSON.stringify(newAttributes)
+      );
 
       const response = await this.platform.smartRentApi.setState(
         this.state.hubId,
         this.state.deviceId,
-        payload
+        newAttributes
       );
 
       // Update local state after successful API call
       this.state.target_temperature.target = numValue;
       this.state.target_temperature.current = numValue;
 
-      // Log success
       this.platform.log.debug('Successfully set temperature:', response);
     } catch (error) {
       this.platform.log.error('Failed to set temperature:', error);
       if (
+        error &&
         typeof error === 'object' &&
         error !== null &&
         'response' in error &&
-        typeof (error as { response?: unknown }).response === 'object' &&
-        (error as { response?: unknown }).response !== null &&
-        (error as { response?: { data?: unknown } }).response !== undefined &&
-        (error as { response?: { data?: unknown } }).response !== undefined &&
-        'data' in (error as { response?: { data?: unknown } }).response!
+        error.response &&
+        typeof error.response === 'object' &&
+        'data' in error.response
       ) {
-        const response = (error as { response?: { data?: unknown } }).response;
         this.platform.log.error(
           'API Error details:',
-          JSON.stringify(response && (response as { data?: unknown }).data)
+          JSON.stringify(error.response.data)
         );
       }
       throw error;
