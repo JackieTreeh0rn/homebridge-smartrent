@@ -8,8 +8,8 @@
   Homebridge SmartRent
 </h1>
 
-[![npm version](https://badgen.net/npm/v/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm&label)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
-[![npm downloads](https://badgen.net/npm/dw/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm&label)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
+[![npm version](https://badgen.net/npm/v/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
+[![npm downloads](https://badgen.net/npm/dw/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
 [![GitHub Stars](https://badgen.net/github/stars/JackieTreeh0rn/homebridge-smartrent?color=cyan&icon=github)](https://github.com/JackieTreeh0rn/homebridge-smartrent)
 [![GitHub Last Commit](https://badgen.net/github/last-commit/JackieTreeh0rn/homebridge-smartrent?color=cyan&icon=github)](https://github.com/JackieTreeh0rn/homebridge-smartrent)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/JackieTreeh0rn/homebridge-smartrent.svg)](https://github.com/JackieTreeh0rn/homebridge-smartrent/pulls)
