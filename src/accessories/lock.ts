@@ -1,7 +1,7 @@
 import { CharacteristicValue, Service } from 'homebridge';
 import { SmartRentPlatform } from '../platform.js';
 import type { SmartRentAccessory } from './index.js';
-import { LockData } from '../devices';
+import { LockData } from '../devices/lock.js';
 import { WSEvent } from '../lib/client.js';
 import { findStateByName } from '../lib/utils.js';
 
