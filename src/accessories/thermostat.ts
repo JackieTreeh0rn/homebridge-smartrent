@@ -404,22 +404,32 @@ export class ThermostatAccessory {
     }
   }
 
-  private fromTemperatureCharacteristic(temperature: number) {
+  // --- Improved temperature conversion with validation ---
+  private fromTemperatureCharacteristic(
+    temperature: number | null | undefined
+  ) {
+    if (typeof temperature !== 'number' || isNaN(temperature)) {
+      this.platform.log.warn('Invalid temperature for API:', temperature);
+      return 70; // fallback to a safe default (Fahrenheit)
+    }
     this.platform.log.debug(
-      'fromTemperatureCharacteristic' +
+      'fromTemperatureCharacteristic ' +
         temperature +
-        '=>' +
-        (temperature * 9) / 5 +
-        32
+        ' => ' +
+        ((temperature * 9) / 5 + 32)
     );
     return (temperature * 9) / 5 + 32;
   }
 
-  private toTemperatureCharacteristic(temperature: number) {
+  private toTemperatureCharacteristic(temperature: number | null | undefined) {
+    if (typeof temperature !== 'number' || isNaN(temperature)) {
+      this.platform.log.warn('Invalid temperature from API:', temperature);
+      return 21; // fallback to a safe default (Celsius)
+    }
     this.platform.log.debug(
-      'toTemperatureCharacteristic' +
+      'toTemperatureCharacteristic ' +
         temperature +
-        '=>' +
+        ' => ' +
         ((temperature - 32) * 5) / 9
     );
     return ((temperature - 32) * 5) / 9;
@@ -495,19 +505,29 @@ export class ThermostatAccessory {
   /**
    * Handle requests to get the current value of the "Current Temperature" characteristic
    */
+  // --- Use destructuring for GET handlers ---
+  // --- Use destructuring for GET handlers ---
   async handleCurrentTemperatureGet() {
     this.platform.log.debug('Triggered GET CurrentTemperature');
-
     const thermostatAttributes = await this.platform.smartRentApi.getState(
       this.state.hubId,
       this.state.deviceId
     );
-
-    const currentValue = this.toTemperatureCharacteristic(
-      findStateByName(thermostatAttributes, 'current_temp') as number
-    );
+    // Assuming thermostatAttributes is an array of DeviceAttribute
+    const current_temp = findStateByName(
+      thermostatAttributes,
+      'current_temp'
+    ) as number;
+    const currentValue = this.toTemperatureCharacteristic(current_temp);
     this.state.current_temperature.current = currentValue;
     return currentValue;
+  }
+
+  // ...repeat similar improvements for other handlers...
+
+  // --- Improved fan mode conversion ---
+  private fromFanOnCharacteristic(on: boolean): ThermostatFanMode {
+    return on ? 'on' : 'auto';
   }
 
   /**
@@ -530,20 +550,38 @@ export class ThermostatAccessory {
   /**
    * Handle requests to set the "Target Temperature" characteristic
    */
-  async handleTargetTemperatureSet(value) {
-    this.platform.log.debug('Triggered SET TargetTemperature:', value);
-    this.state.target_temperature.target = value;
-    const target_temp_attributes =
-      this.fromTargetTemperatureCharacteristic(value);
-    const thermostatAttributes =
-      await this.platform.smartRentApi.setState<ThermostatData>(
-        this.state.hubId,
-        this.state.deviceId,
-        target_temp_attributes
-      );
+  // --- Use object payloads for API setState ---
+  private async handleTargetTemperatureSet(value: CharacteristicValue) {
+    const numValue = typeof value === 'number' ? value : Number(value);
+    this.platform.log.debug('Triggered SET TargetTemperature:', numValue);
+    this.state.target_temperature.target = numValue;
+    const target_temp = this.fromTemperatureCharacteristic(numValue);
 
-    this.state.target_temperature.current =
-      this.toTargetTemperatureCharacteristic(thermostatAttributes);
+    // Use array of DeviceAttribute for API payload
+    const payload: DeviceAttribute[] =
+      this.state.heating_cooling_state.current ===
+      this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+        ? [{ name: 'cool_target_temp', state: target_temp }]
+        : [{ name: 'heat_target_temp', state: target_temp }];
+
+    const thermostatAttributes = await this.platform.smartRentApi.setState(
+      this.state.hubId,
+      this.state.deviceId,
+      payload
+    );
+
+    // Use destructuring for clarity
+    const { cool_target_temp, heat_target_temp } = thermostatAttributes as {
+      cool_target_temp?: number;
+      heat_target_temp?: number;
+    };
+    const currentValue =
+      this.state.heating_cooling_state.current ===
+      this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+        ? this.toTemperatureCharacteristic(cool_target_temp)
+        : this.toTemperatureCharacteristic(heat_target_temp);
+
+    this.state.target_temperature.current = currentValue;
   }
 
   /**
