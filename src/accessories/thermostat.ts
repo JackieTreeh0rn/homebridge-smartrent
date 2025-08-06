@@ -565,47 +565,67 @@ export class ThermostatAccessory {
       const numValue = typeof value === 'number' ? value : Number(value);
       this.platform.log.debug('Triggered SET TargetTemperature:', numValue);
 
-      // Validate temperature is within allowed range
-      if (numValue < 10 || numValue > 38) {
+      // Convert Celsius to Fahrenheit and round to whole number
+      const fahrenheit = Math.round(
+        this.fromTemperatureCharacteristic(numValue)
+      );
+
+      // Log the conversion for debugging
+      this.platform.log.debug(`Converting ${numValue}°C to ${fahrenheit}°F`);
+
+      // Validate Fahrenheit temperature is within SmartRent's allowed range
+      if (fahrenheit < 50 || fahrenheit > 90) {
         throw new Error(
-          `Temperature ${numValue}°C is outside allowed range (10-38°C)`
+          `Temperature ${fahrenheit}°F is outside allowed range (50-90°F)`
         );
       }
 
-      this.state.target_temperature.target = numValue;
-      const target_temp = this.fromTemperatureCharacteristic(numValue);
+      // Create payload with number (not string)
+      const payload: DeviceAttribute[] = [
+        {
+          name:
+            this.state.heating_cooling_state.current ===
+            this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+              ? 'cool_target_temp'
+              : 'heat_target_temp',
+          state: fahrenheit, // Send as number, not string
+        },
+      ];
 
-      // Ensure we're sending an integer value as a string
-      const temp = Math.round(target_temp).toString();
+      // Log the exact payload being sent
+      this.platform.log.debug('Sending payload:', JSON.stringify(payload));
 
-      const payload: DeviceAttribute[] =
-        this.state.heating_cooling_state.current ===
-        this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-          ? [{ name: 'cool_target_temp', state: temp }]
-          : [{ name: 'heat_target_temp', state: temp }];
-
-      await this.platform.smartRentApi.setState(
+      const response = await this.platform.smartRentApi.setState(
         this.state.hubId,
         this.state.deviceId,
         payload
       );
 
-      // Update the current value after successful API call
-      this.handleDeviceStateChanged({
-        id: 0, // Provide appropriate id if available
-        remote_id: '', // Provide appropriate remote_id if available
-        type: '', // Provide appropriate type if available
-        name:
-          this.state.heating_cooling_state.current ===
-          this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-            ? 'cooling_setpoint'
-            : 'heating_setpoint',
-        last_read_state: temp,
-        last_read_state_changed_at: new Date().toISOString(), // Or use a suitable timestamp
-      });
+      // Update local state after successful API call
+      this.state.target_temperature.target = numValue;
+      this.state.target_temperature.current = numValue;
+
+      // Log success
+      this.platform.log.debug('Successfully set temperature:', response);
     } catch (error) {
       this.platform.log.error('Failed to set temperature:', error);
-      throw error; // Let HomeKit know the operation failed
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null &&
+        (error as { response?: { data?: unknown } }).response !== undefined &&
+        (error as { response?: { data?: unknown } }).response !== undefined &&
+        'data' in (error as { response?: { data?: unknown } }).response!
+      ) {
+        const response = (error as { response?: { data?: unknown } }).response;
+        this.platform.log.error(
+          'API Error details:',
+          JSON.stringify(response && (response as { data?: unknown }).data)
+        );
+      }
+      throw error;
     }
   }
 
