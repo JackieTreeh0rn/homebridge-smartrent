@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.2](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.1...v1.0.2) (2025-08-06)
+
+### Bug Fixes
+
+* **bug:** major refactored temperature & thermostat handling ([45bdff4](https://github.com/JackieTreeh0rn/homebridge-smartrent/commit/45bdff478a8f5b225a8e10b0d3605d6aa6f6e178))
+
 ## [1.0.1](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.0...v1.0.1) (2025-08-06)
 
 ### Bug Fixes
