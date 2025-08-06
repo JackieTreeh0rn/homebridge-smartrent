@@ -412,13 +412,16 @@ export class ThermostatAccessory {
       this.platform.log.warn('Invalid temperature for API:', temperature);
       return 70; // fallback to a safe default (Fahrenheit)
     }
+
+    // Round to nearest whole number as SmartRent expects integer values
+    const fahrenheit = Math.round((temperature * 9) / 5 + 32);
+
     this.platform.log.debug(
-      'fromTemperatureCharacteristic ' +
-        temperature +
-        ' => ' +
-        ((temperature * 9) / 5 + 32)
+      `fromTemperatureCharacteristic ${temperature}°C => ${fahrenheit}°F`
     );
-    return (temperature * 9) / 5 + 32;
+
+    // Ensure the value is within SmartRent's allowed range (typically 50-90°F)
+    return Math.max(50, Math.min(90, fahrenheit));
   }
 
   private toTemperatureCharacteristic(temperature: number | null | undefined) {
@@ -426,13 +429,19 @@ export class ThermostatAccessory {
       this.platform.log.warn('Invalid temperature from API:', temperature);
       return 21; // fallback to a safe default (Celsius)
     }
+    // Parse string to number if needed
+    const temp =
+      typeof temperature === 'string' ? parseFloat(temperature) : temperature;
+
+    // Round to 1 decimal place to avoid floating point issues
+    const celsius = Math.round((((temp - 32) * 5) / 9) * 10) / 10;
+
     this.platform.log.debug(
-      'toTemperatureCharacteristic ' +
-        temperature +
-        ' => ' +
-        ((temperature - 32) * 5) / 9
+      `toTemperatureCharacteristic ${temp}°F => ${celsius}°C`
     );
-    return ((temperature - 32) * 5) / 9;
+
+    // Ensure the value is within HomeKit's allowed range (10-38°C)
+    return Math.max(10, Math.min(38, celsius));
   }
 
   private toFanOnCharacteristic(thermostatFanMode: ThermostatFanMode) {
@@ -552,36 +561,52 @@ export class ThermostatAccessory {
    */
   // --- Use object payloads for API setState ---
   private async handleTargetTemperatureSet(value: CharacteristicValue) {
-    const numValue = typeof value === 'number' ? value : Number(value);
-    this.platform.log.debug('Triggered SET TargetTemperature:', numValue);
-    this.state.target_temperature.target = numValue;
-    const target_temp = this.fromTemperatureCharacteristic(numValue);
+    try {
+      const numValue = typeof value === 'number' ? value : Number(value);
+      this.platform.log.debug('Triggered SET TargetTemperature:', numValue);
 
-    // Use array of DeviceAttribute for API payload
-    const payload: DeviceAttribute[] =
-      this.state.heating_cooling_state.current ===
-      this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-        ? [{ name: 'cool_target_temp', state: target_temp }]
-        : [{ name: 'heat_target_temp', state: target_temp }];
+      // Validate temperature is within allowed range
+      if (numValue < 10 || numValue > 38) {
+        throw new Error(
+          `Temperature ${numValue}°C is outside allowed range (10-38°C)`
+        );
+      }
 
-    const thermostatAttributes = await this.platform.smartRentApi.setState(
-      this.state.hubId,
-      this.state.deviceId,
-      payload
-    );
+      this.state.target_temperature.target = numValue;
+      const target_temp = this.fromTemperatureCharacteristic(numValue);
 
-    // Use destructuring for clarity
-    const { cool_target_temp, heat_target_temp } = thermostatAttributes as {
-      cool_target_temp?: number;
-      heat_target_temp?: number;
-    };
-    const currentValue =
-      this.state.heating_cooling_state.current ===
-      this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-        ? this.toTemperatureCharacteristic(cool_target_temp)
-        : this.toTemperatureCharacteristic(heat_target_temp);
+      // Ensure we're sending an integer value as a string
+      const temp = Math.round(target_temp).toString();
 
-    this.state.target_temperature.current = currentValue;
+      const payload: DeviceAttribute[] =
+        this.state.heating_cooling_state.current ===
+        this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+          ? [{ name: 'cool_target_temp', state: temp }]
+          : [{ name: 'heat_target_temp', state: temp }];
+
+      await this.platform.smartRentApi.setState(
+        this.state.hubId,
+        this.state.deviceId,
+        payload
+      );
+
+      // Update the current value after successful API call
+      this.handleDeviceStateChanged({
+        id: 0, // Provide appropriate id if available
+        remote_id: '', // Provide appropriate remote_id if available
+        type: '', // Provide appropriate type if available
+        name:
+          this.state.heating_cooling_state.current ===
+          this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+            ? 'cooling_setpoint'
+            : 'heating_setpoint',
+        last_read_state: temp,
+        last_read_state_changed_at: new Date().toISOString(), // Or use a suitable timestamp
+      });
+    } catch (error) {
+      this.platform.log.error('Failed to set temperature:', error);
+      throw error; // Let HomeKit know the operation failed
+    }
   }
 
   /**
