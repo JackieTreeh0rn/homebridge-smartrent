@@ -99,7 +99,9 @@ export class SmartRentApiClient {
       ...config.headers,
       Authorization: `Bearer ${accessToken}`,
     } as AxiosRequestHeaders;
-    this.log.debug('Request:', JSON.stringify(config, null, 2));
+    this.log.debug(
+      `API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`
+    );
     return config;
   }
 
@@ -109,7 +111,11 @@ export class SmartRentApiClient {
    * @returns SmartRent response data payload
    */
   private _handleResponse(response: AxiosResponse) {
-    this.log.debug('Response:', JSON.stringify(response.data, null, 2));
+    // Only log response size and status, not the full payload
+    const dataSize = JSON.stringify(response.data).length;
+    this.log.debug(
+      `API Response: ${response.status} ${response.statusText} (${dataSize} bytes)`
+    );
     return response;
   }
 

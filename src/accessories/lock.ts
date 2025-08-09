@@ -85,13 +85,26 @@ export class LockAccessory {
    * Handle requests to get the current value of the "Battery Level" characteristic
    */
   async handleBatteryLevelGet(): Promise<CharacteristicValue> {
-    this.platform.log.debug('Triggered GET BatteryLevel');
-    const lockData = await this.platform.smartRentApi.getData<LockData>(
-      this.state.hubId,
-      this.state.deviceId
-    );
-    this.platform.log.debug('Lock Data', lockData);
-    return Math.round(Number(lockData.battery_level));
+    const deviceName = this.accessory.context.device.name;
+    this.platform.log.debug(`Reading battery level for "${deviceName}"`);
+
+    try {
+      const lockData = await this.platform.smartRentApi.getData<LockData>(
+        this.state.hubId,
+        this.state.deviceId
+      );
+
+      const batteryLevel = Math.round(Number(lockData.battery_level));
+      this.platform.log.info(`"${deviceName}" battery level: ${batteryLevel}%`);
+
+      return batteryLevel;
+    } catch (error) {
+      this.platform.log.error(
+        `Failed to get battery level for "${deviceName}":`,
+        error
+      );
+      throw error;
+    }
   }
 
   private readonly LOCKED: string = 'locked';
@@ -100,26 +113,37 @@ export class LockAccessory {
    * Handle requests to get the current value of the "Lock Current State" characteristic
    */
   async handleLockCurrentStateGet(): Promise<CharacteristicValue> {
-    this.platform.log.debug(
-      'Triggered GET LockCurrentState Start',
-      this.state.locked.current
-    );
-    const lockAttributes = await this.platform.smartRentApi.getState<LockData>(
-      this.state.hubId,
-      this.state.deviceId
-    );
-    const locked = findStateByName(lockAttributes, this.LOCKED) as string;
-    this.platform.log.debug('Lock Attributes', JSON.stringify(lockAttributes));
-    const currentValue =
-      locked === 'true'
+    const deviceName = this.accessory.context.device.name;
+    this.platform.log.debug(`Reading lock state for "${deviceName}"`);
+
+    try {
+      const lockAttributes =
+        await this.platform.smartRentApi.getState<LockData>(
+          this.state.hubId,
+          this.state.deviceId
+        );
+
+      const locked = findStateByName(lockAttributes, this.LOCKED) as string;
+      const isLocked = locked === 'true';
+
+      const currentValue = isLocked
         ? this.platform.api.hap.Characteristic.LockTargetState.SECURED
         : this.platform.api.hap.Characteristic.LockTargetState.UNSECURED;
-    this.state.locked.current = currentValue;
-    this.platform.log.debug(
-      'Triggered GET LockCurrentState Done',
-      this.state.locked.current
-    );
-    return currentValue;
+
+      this.state.locked.current = currentValue;
+
+      this.platform.log.info(
+        `"${deviceName}" current lock state: ${isLocked ? 'LOCKED' : 'UNLOCKED'} (API: "${locked}")`
+      );
+
+      return currentValue;
+    } catch (error) {
+      this.platform.log.error(
+        `Failed to get lock state for "${deviceName}":`,
+        error
+      );
+      throw error;
+    }
   }
 
   /**
@@ -144,17 +168,35 @@ export class LockAccessory {
    * Handle requests to set the "Lock Target State" characteristic
    */
   async handleLockTargetStateSet(value: CharacteristicValue) {
-    this.platform.log.debug('Triggered SET LockTargetState:', value);
-    this.state.locked.target = value;
-    const attributes = [{ name: this.LOCKED, state: !!value }];
-    const lockAttributes = await this.platform.smartRentApi.setState<LockData>(
-      this.state.hubId,
-      this.state.deviceId,
-      attributes
-    );
-    this.scheduleAutoLock(value);
+    const deviceName = this.accessory.context.device.name;
+    const targetState =
+      value === this.platform.api.hap.Characteristic.LockTargetState.SECURED
+        ? 'LOCK'
+        : 'UNLOCK';
 
-    this.platform.log.debug('Completed SET LockTargetState:', lockAttributes);
+    this.platform.log.info(`Setting "${deviceName}" to ${targetState}`);
+
+    try {
+      this.state.locked.target = value;
+      const attributes = [{ name: this.LOCKED, state: !!value }];
+
+      await this.platform.smartRentApi.setState<LockData>(
+        this.state.hubId,
+        this.state.deviceId,
+        attributes
+      );
+
+      this.scheduleAutoLock(value);
+      this.platform.log.info(
+        `Successfully set "${deviceName}" to ${targetState}`
+      );
+    } catch (error) {
+      this.platform.log.error(
+        `Failed to set "${deviceName}" to ${targetState}:`,
+        error
+      );
+      throw error;
+    }
   }
 
   private scheduleAutoLock(value: CharacteristicValue) {

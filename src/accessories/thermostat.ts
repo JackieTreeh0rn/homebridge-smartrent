@@ -564,15 +564,25 @@ export class ThermostatAccessory {
    */
   // --- Use object payloads for API setState ---
   private async handleTargetTemperatureSet(value: CharacteristicValue) {
+    const deviceName = this.accessory.context.device.name;
+
     try {
       const numValue = typeof value === 'number' ? value : Number(value);
-      this.platform.log.debug('Triggered SET TargetTemperature:', numValue);
 
       // Convert Celsius to Fahrenheit and round to whole number
       const fahrenheit = Math.round(
         this.fromTemperatureCharacteristic(numValue)
       );
-      this.platform.log.debug(`Converting ${numValue}°C to ${fahrenheit}°F`);
+
+      const mode =
+        this.state.heating_cooling_state.current ===
+        this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
+          ? 'cooling'
+          : 'heating';
+
+      this.platform.log.info(
+        `Setting "${deviceName}" ${mode} temperature to ${numValue}°C (${fahrenheit}°F)`
+      );
 
       // Validate Fahrenheit temperature is within SmartRent's allowed range
       if (fahrenheit < 50 || fahrenheit > 90) {
@@ -584,22 +594,12 @@ export class ThermostatAccessory {
       // Create attributes array - note the state must be a string!
       const newAttributes = [
         {
-          name:
-            this.state.heating_cooling_state.current ===
-            this.platform.api.hap.Characteristic.TargetHeatingCoolingState.COOL
-              ? 'cooling_setpoint' // Changed from cool_target_temp
-              : 'heating_setpoint', // Changed from heat_target_temp
+          name: mode === 'cooling' ? 'cooling_setpoint' : 'heating_setpoint',
           state: fahrenheit.toString(), // Convert to string
         },
       ];
 
-      // Log the exact attributes being sent
-      this.platform.log.debug(
-        'Sending attributes:',
-        JSON.stringify(newAttributes)
-      );
-
-      const response = await this.platform.smartRentApi.setState(
+      await this.platform.smartRentApi.setState(
         this.state.hubId,
         this.state.deviceId,
         newAttributes
@@ -609,9 +609,14 @@ export class ThermostatAccessory {
       this.state.target_temperature.target = numValue;
       this.state.target_temperature.current = numValue;
 
-      this.platform.log.debug('Successfully set temperature:', response);
+      this.platform.log.info(
+        `Successfully set "${deviceName}" ${mode} temperature to ${numValue}°C (${fahrenheit}°F)`
+      );
     } catch (error) {
-      this.platform.log.error('Failed to set temperature:', error);
+      this.platform.log.error(
+        `Failed to set "${deviceName}" temperature:`,
+        error
+      );
       if (
         error &&
         typeof error === 'object' &&
