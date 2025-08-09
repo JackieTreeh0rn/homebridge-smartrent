@@ -68,12 +68,22 @@ export class LeakSensorAccessory {
    * Handle requests to get the current value of the "Leak Detected" characteristic
    */
   async handleLeakDetected(): Promise<CharacteristicValue> {
-    this.platform.log.debug('Triggered GET LeakDetected');
+    this.platform.log.debug(
+      `Triggered GET LeakDetected for "${this.accessory.context.device.name}" (${this.state.deviceId})`
+    );
     const leakAttributes = await this.platform.smartRentApi.getState(
       this.state.hubId,
       this.state.deviceId
     );
-    const leak = findStateByName(leakAttributes, 'leak') as boolean;
+
+    // The API returns leak state as a string "true" or "false"
+    const leakState = findStateByName(leakAttributes, 'leak') as string;
+    const leak = leakState === 'true';
+
+    this.platform.log.debug(
+      `Leak sensor "${this.accessory.context.device.name}": state="${leakState}", leak=${leak}`
+    );
+
     const currentValue = leak
       ? this.platform.api.hap.Characteristic.LeakDetected.LEAK_DETECTED
       : this.platform.api.hap.Characteristic.LeakDetected.LEAK_NOT_DETECTED;
@@ -86,15 +96,25 @@ export class LeakSensorAccessory {
    * @param event
    */
   handleDeviceStateChanged(event: WSEvent) {
-    this.platform.log.debug('Received websocket leak event:', event);
+    const deviceName = this.accessory.context.device.name;
+    this.platform.log.debug(
+      `Device "${deviceName}" (${this.state.deviceId}) state changed: ${JSON.stringify(event)}`
+    );
 
     if (event.name !== 'leak') {
       return;
     }
-    const leak =
-      event.last_read_state === 'true'
-        ? this.platform.api.hap.Characteristic.LeakDetected.LEAK_DETECTED
-        : this.platform.api.hap.Characteristic.LeakDetected.LEAK_NOT_DETECTED;
+
+    // Handle string values from websocket events
+    const leakDetected = event.last_read_state === 'true';
+    const leak = leakDetected
+      ? this.platform.api.hap.Characteristic.LeakDetected.LEAK_DETECTED
+      : this.platform.api.hap.Characteristic.LeakDetected.LEAK_NOT_DETECTED;
+
+    this.platform.log.debug(
+      `Leak sensor "${deviceName}" websocket update: state="${event.last_read_state}", leak=${leakDetected}`
+    );
+
     this.state.leak.current = leak;
     this.service.updateCharacteristic(
       this.platform.api.hap.Characteristic.LeakDetected,
