@@ -95,6 +95,10 @@ export class SmartRentApiClient {
    */
   private async _handleRequest(config: InternalAxiosRequestConfig) {
     const accessToken = await this.getAccessToken();
+    if (!accessToken) {
+      this.log.error('No access token available. Aborting API request.');
+      throw new Error('Authentication failed: No access token');
+    }
     config.headers = {
       ...config.headers,
       Authorization: `Bearer ${accessToken}`,
@@ -193,11 +197,20 @@ export class SmartRentWebsocketClient extends SmartRentApiClient {
    */
   private async _initializeWsClient() {
     this.log.debug('WebSocket connection opening');
-    const token = String(await this.getAccessToken());
+    const token = await this.getAccessToken();
+    if (!token) {
+      this.log.error(
+        'No access token available. Aborting WebSocket connection.'
+      );
+      throw new Error('Authentication failed: No access token for WebSocket');
+    }
     const wsClient = new WebSocket(
       WS_API_URL +
         '?' +
-        new URLSearchParams({ token, vsn: WS_VERSION }).toString()
+        new URLSearchParams({
+          token: String(token),
+          vsn: WS_VERSION,
+        }).toString()
     );
     wsClient.onopen = this._handleWsOpen.bind(this);
     wsClient.onmessage = this._handleWsMessage.bind(this);
