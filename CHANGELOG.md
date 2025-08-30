@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.9](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.8...v1.0.9) (2025-08-30)
+
+### Bug Fixes
+
+* **api:** handle missing access token for API requests and WebSocket connections ([449d880](https://github.com/JackieTreeh0rn/homebridge-smartrent/commit/449d8800b9153dc0c4ff00f6f21126499a0d97ec))
+
 ## [1.0.8](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.7...v1.0.8) (2025-08-09)
 
 ### Bug Fixes
