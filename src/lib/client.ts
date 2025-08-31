@@ -153,7 +153,7 @@ export class SmartRentApiClient {
 }
 
 export class SmartRentWebsocketClient extends SmartRentApiClient {
-  public wsClient: Promise<WebSocket>;
+  public wsClient: Promise<WebSocket | undefined>;
   public event: object;
   private readonly devices: number[];
 
@@ -198,11 +198,11 @@ export class SmartRentWebsocketClient extends SmartRentApiClient {
   private async _initializeWsClient() {
     this.log.debug('WebSocket connection opening');
     const token = await this.getAccessToken();
-    if (!token) {
-      this.log.error(
-        'No access token available. Aborting WebSocket connection.'
+    if (!token || token === 'undefined') {
+      this.log.warn(
+        'Authentication failed: No access token! SmartRent WebSocket features disabled.'
       );
-      throw new Error('Authentication failed: No access token for WebSocket');
+      return undefined;
     }
     const wsClient = new WebSocket(
       WS_API_URL +
@@ -237,15 +237,19 @@ export class SmartRentWebsocketClient extends SmartRentApiClient {
   private _handleWsError(error: WebSocket.ErrorEvent) {
     this.log.error(`WebSocket error: ${error.message}`);
     this.wsClient
-      .then(client => client.close())
-      .then(() => this._initializeWsClient);
+      .then(client => {
+        if (client) {
+          client.close();
+        }
+      })
+      .then(() => {
+        this.wsClient = this._initializeWsClient();
+      });
   }
 
   private _handleWsClose(event: WebSocket.CloseEvent) {
     this.log.debug(
-      `WebSocket connection closed: Code: ${event.code}, Reason: ${
-        event.reason
-      }, Event: ${event}`,
+      `WebSocket connection closed: Code: ${event.code}, Reason: ${event.reason}, Event: ${event}`,
       event
     );
     this.wsClient = this._initializeWsClient();
@@ -262,10 +266,17 @@ export class SmartRentWebsocketClient extends SmartRentApiClient {
       this._emitize(this.event, `${deviceId}`);
     }
     try {
-      if ((await this.wsClient).readyState !== WebSocket.OPEN) {
+      const wsClient = await this.wsClient;
+      if (!wsClient) {
+        this.log.warn(
+          'WebSocket client not initialized. Device subscription skipped.'
+        );
+        return;
+      }
+      if (wsClient.readyState !== WebSocket.OPEN) {
         throw new Error('WebSocket not ready');
       }
-      (await this.wsClient).send(
+      wsClient.send(
         JSON.stringify(<WSPayload>[
           null,
           null,
