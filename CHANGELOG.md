@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.0](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.10...v1.1.0) (2025-08-31)
+
+### Features
+
+* **verified:** plugin is now homebridge verified! ([e56bf9a](https://github.com/JackieTreeh0rn/homebridge-smartrent/commit/e56bf9a1b220ca08a22cf0d99c35d93650f92d29))
+
 ## [1.0.10](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.9...v1.0.10) (2025-08-31)
 
 ### Bug Fixes
