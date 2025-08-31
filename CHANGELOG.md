@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.10](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.9...v1.0.10) (2025-08-31)
+
+### Bug Fixes
+
+* **websocket:** handle undefined access token and improve error logging ([2131ae0](https://github.com/JackieTreeh0rn/homebridge-smartrent/commit/2131ae0cfa0beb687e7361248a7c780242ba680e))
+
 ## [1.0.9](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.8...v1.0.9) (2025-08-30)
 
 ### Bug Fixes
