@@ -8,6 +8,7 @@
   Homebridge SmartRent
 </h1>
 
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm version](https://badgen.net/npm/v/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm&label)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
 [![npm downloads](https://badgen.net/npm/dw/@jackietreeh0rn/homebridge-smartrent?color=purple&icon=npm&label)](https://www.npmjs.com/package/@jackietreeh0rn/homebridge-smartrent)
 [![GitHub Stars](https://badgen.net/github/stars/JackieTreeh0rn/homebridge-smartrent?color=cyan&icon=github)](https://github.com/JackieTreeh0rn/homebridge-smartrent)
@@ -17,7 +18,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=license)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_shield&issueType=security)
 
-Unofficial [Homebridge](https://homebridge.io) plugin for [SmartRent](https://smartrent.com), allowing you to control your SmartRent devices with [Apple Home](https://www.apple.com/ios/home/).
+Verified [Homebridge](https://homebridge.io) plugin for [SmartRent](https://smartrent.com), allowing you to control your SmartRent devices with [Apple Home](https://www.apple.com/ios/home/).
 
 </span>
 
@@ -29,7 +30,7 @@ Homebridge SmartRent currently supports these devices through a SmartRent hub:
 - 💧 Leak sensors
 - 🔌 Switches
 - 🌡 Thermostats
-- 🎚 Multilevel (Dimmer) Switches
+- 🎚 Multilevel | Dimmer Switches
 
 ## ✅ Usage
 
@@ -162,7 +163,7 @@ Please checkout our [Code of Conduct](./CODE_OF_CONDUCT.md) for more information
 
 [GNU GENERAL PUBLIC LICENSE, Version 3](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=large&issueType=license)](https://app.fossa.com/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_large&issueType=license)
+<!-- [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent.svg?type=large&issueType=license)](https://app.fossa.com/projects/custom%2B56237%2Fgithub.com%2FJackieTreeh0rn%2Fhomebridge-smartrent?ref=badge_large&issueType=license) -->
 
 ## Disclaimer
 
