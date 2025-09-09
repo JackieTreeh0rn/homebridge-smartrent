@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.1.0...v1.1.1) (2025-09-09)
+
+### Bug Fixes
+
+* **auth:** improve session handling for empty or corrupted session files ([3a32ac3](https://github.com/JackieTreeh0rn/homebridge-smartrent/commit/3a32ac3a2e8e02ca349a9dbe9b58adba85bf3ae8))
+
 ## [1.1.0](https://github.com/JackieTreeh0rn/homebridge-smartrent/compare/v1.0.10...v1.1.0) (2025-08-31)
 
 ### Features
