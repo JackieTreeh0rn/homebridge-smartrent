@@ -155,8 +155,29 @@ export class SmartRentAuthClient {
    */
   private async _readStoredSession() {
     if (existsSync(this.sessionPath)) {
-      const sessionString = await fsPromises.readFile(this.sessionPath, 'utf8');
-      this.session = JSON.parse(sessionString) as Session;
+      try {
+        const sessionString = await fsPromises.readFile(
+          this.sessionPath,
+          'utf8'
+        );
+        if (!sessionString || sessionString.trim().length === 0) {
+          this.log.warn(
+            'Session file is empty. Resetting session and starting new authentication.'
+          );
+          await fsPromises.unlink(this.sessionPath);
+          this.session = undefined;
+          return;
+        }
+        this.session = JSON.parse(sessionString) as Session;
+      } catch (err) {
+        this.log.warn(
+          'Session file is invalid or corrupted. Resetting session and starting new authentication.'
+        );
+        this.log.debug('Session file parse error:', err);
+        await fsPromises.unlink(this.sessionPath);
+        this.session = undefined;
+        return;
+      }
     } else if (!existsSync(this.pluginPath)) {
       await fsPromises.mkdir(this.pluginPath);
     }
